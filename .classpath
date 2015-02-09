@@ -4,8 +4,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/lwjgl3/jar/lwjgl.jar" sourcepath="lib/lwjgl3/src.zip">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/Z/lib/lwjgl3/doc/javadoc.zip!/"/>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Z/lib/lwjgl3/native/windows/x64"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jrogue/lib/lwjgl3/doc/javadoc.zip!/"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jrogue/lib/lwjgl3/native/windows/x64"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
