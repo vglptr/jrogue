@@ -2,7 +2,6 @@ package core;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
@@ -29,6 +28,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.glfw.Callbacks;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -38,14 +38,30 @@ import org.lwjgl.opengl.GLContext;
 public class Window {
 	private static int width = 640;
 	private static int height = 480;
+	//TODO: Move these to some better place
+	public static int x=0;
+	public static int y=0;
+	//
 	private long windowId;
 	GLFWFramebufferSizeCallback fbCallback;
 	private static GLFWErrorCallback errorCallback = Callbacks.errorCallbackPrint(System.err);
     private static GLFWKeyCallback keyCallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GL_TRUE);
+            }
+            if (key == GLFW.GLFW_KEY_UP && action == GLFW_PRESS) {
+                y--;
+            }
+            if (key == GLFW.GLFW_KEY_DOWN && action == GLFW_PRESS) {
+                y++;
+            }
+            if (key == GLFW.GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+                x--;
+            }
+            if (key == GLFW.GLFW_KEY_LEFT && action == GLFW_PRESS) {
+                x++;
             }
         }
     };	 
@@ -104,7 +120,7 @@ public class Window {
 			public void invoke(long window, int width, int height) {
 				glViewport(0, 0, width, height);
 				Window.width = width;
-				Window.height = width;
+				Window.height = height;
 			}
 		});
 	}

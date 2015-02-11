@@ -59,9 +59,9 @@ public class Tile {
 	int fragmentShader;
 	int shaderProgram;
 	
-	int x = 4;
-	int y = 4;
-	float squareSize = 0.5f;
+	int x = 3;
+	int y = 2;
+	float squareSize = 0.2f;
 	
 	public Tile() {
 		vao = glGenVertexArrays();
@@ -108,11 +108,11 @@ public class Tile {
 		
 		int posAttrib = glGetAttribLocation(shaderProgram, "position");
 		glEnableVertexAttribArray(posAttrib);
-		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 24, 0);
 
 		int colAttrib = glGetAttribLocation(shaderProgram, "color");
 		glEnableVertexAttribArray(colAttrib);
-		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 0, 0);
+		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 24, 12);
 		
 		int uniModel = glGetUniformLocation(shaderProgram, "model");
 		Matrix4f model = new Matrix4f();
@@ -128,18 +128,22 @@ public class Tile {
 		glUniformMatrix4(uniProjection, false, projection.getBuffer());
 		
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, x * y * 3);
+		glDrawArrays(GL_TRIANGLES, 0, x * y * 6);
 	}
 	
 	public void update(float delta) {
 	    previousAngle = angle;
 	    angle += delta * anglePerSecond;
+
+	    int uniView = glGetUniformLocation(shaderProgram, "view");
+	    Matrix4f view = Matrix4f.translate(Window.x*0.1f, Window.y*0.1f, 0);
+	    glUniformMatrix4(uniView, false, view.getBuffer());
 	}
 	
 	public void render(float alpha) {
 	    glClear(GL_COLOR_BUFFER_BIT);
 
-	    float ratio = Window.getWidth() / Window.getHeight();
+	    float ratio = Window.getWidth() / (float)Window.getHeight();
 	    Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
 	    glUniformMatrix4(uniProjection, false, projection.getBuffer());
 	    
@@ -147,7 +151,7 @@ public class Tile {
 	    Matrix4f model = Matrix4f.rotate(lerpAngle, 0f, 0f, 1f);
 	    glUniformMatrix4(uniModel, false, model.getBuffer());
 	    
-	    glDrawArrays(GL_TRIANGLES, 0, x * y * 3);
+	    glDrawArrays(GL_TRIANGLES, 0, x * y * 6);
 	}
 	
 	public void destroy() {
