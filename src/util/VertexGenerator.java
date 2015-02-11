@@ -11,14 +11,19 @@ public class VertexGenerator {
 			for (int j = 0; j < y; j++) {
 				vertices.put(i*squareSize).put(j*squareSize).put(0);
 				vertices.put(1).put(0).put(0);
+
 				vertices.put(i*squareSize + squareSize).put(j*squareSize).put(0);
 				vertices.put(0).put(1).put(0);
+				
 				vertices.put(i*squareSize).put(j*squareSize + squareSize).put(0);
 				vertices.put(0).put(0).put(1);
+				
 				vertices.put(i*squareSize).put(j*squareSize + squareSize).put(0);
 				vertices.put(0).put(0).put(1);
+				
 				vertices.put(i*squareSize + squareSize).put(j*squareSize).put(0);
 				vertices.put(0).put(1).put(0);
+				
 				vertices.put(i*squareSize + squareSize).put(j*squareSize + squareSize).put(0);
 				vertices.put(1).put(0).put(0);
 			}

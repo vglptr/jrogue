@@ -49,9 +49,9 @@ import core.Window;
 public class Tile {
 	private int uniModel;
 	private int uniProjection;
-	private float previousAngle = 0f;
-	private float angle = 0f;
-	private float anglePerSecond = 50f;
+	//private float previousAngle = 0f;
+//	private float angle = 0f;
+//	private float anglePerSecond = 50f;
 	
 	int vao;
 	int vbo;
@@ -59,15 +59,16 @@ public class Tile {
 	int fragmentShader;
 	int shaderProgram;
 	
-	int x = 3;
-	int y = 2;
-	float squareSize = 0.2f;
+	int resolutionx = 10;
+	int resolutiony = 10;
+	float squareSize = 0.1f;
+	float ratio = 640f / 480f;
 	
 	public Tile() {
 		vao = glGenVertexArrays();
 		glBindVertexArray(vao);
 		
-		FloatBuffer vertices = VertexGenerator.generateMesh(x, y, squareSize);
+		FloatBuffer vertices = VertexGenerator.generateMesh(resolutionx, resolutiony, squareSize);
 		
 		vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -123,35 +124,37 @@ public class Tile {
 		glUniformMatrix4(uniView, false, view.getBuffer());
 
 		uniProjection = glGetUniformLocation(shaderProgram, "projection");
-		float ratio = 640f / 480f;
 		Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
 		glUniformMatrix4(uniProjection, false, projection.getBuffer());
 		
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, x * y * 6);
+		glDrawArrays(GL_TRIANGLES, 0, resolutionx * resolutiony * 3);
 	}
 	
 	public void update(float delta) {
-	    previousAngle = angle;
-	    angle += delta * anglePerSecond;
+//	    previousAngle = angle;
+//	    angle += delta * anglePerSecond;
 
 	    int uniView = glGetUniformLocation(shaderProgram, "view");
-	    Matrix4f view = Matrix4f.translate(Window.x*0.1f, Window.y*0.1f, 0);
+	    Matrix4f view = Matrix4f.translate(Window.x * 0.1f, Window.y * 0.1f, 0);
 	    glUniformMatrix4(uniView, false, view.getBuffer());
 	}
 	
 	public void render(float alpha) {
 	    glClear(GL_COLOR_BUFFER_BIT);
-
-	    float ratio = Window.getWidth() / (float)Window.getHeight();
-	    Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
-	    glUniformMatrix4(uniProjection, false, projection.getBuffer());
 	    
-	    float lerpAngle = (1f - alpha) * previousAngle + alpha * angle;
-	    Matrix4f model = Matrix4f.rotate(lerpAngle, 0f, 0f, 1f);
-	    glUniformMatrix4(uniModel, false, model.getBuffer());
+	    float newRatio = Window.getWidth() / (float)Window.getHeight();
+	    if(ratio != newRatio) {
+	    	ratio = newRatio;
+	    	Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
+	    	glUniformMatrix4(uniProjection, false, projection.getBuffer());
+	    }
 	    
-	    glDrawArrays(GL_TRIANGLES, 0, x * y * 6);
+//	    float lerpAngle = (1f - alpha) * previousAngle + alpha * angle;
+//	    Matrix4f model = Matrix4f.rotate(lerpAngle, 0f, 0f, 1f);
+//	    glUniformMatrix4(uniModel, false, model.getBuffer());
+	    
+	    glDrawArrays(GL_TRIANGLES, 0, resolutionx * resolutiony * 6);
 	}
 	
 	public void destroy() {

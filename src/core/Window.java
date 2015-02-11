@@ -98,7 +98,7 @@ public class Window {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-        windowId = glfwCreateWindow(Window.width, Window.height, "Simple example", NULL, NULL);
+        windowId = glfwCreateWindow(Window.width, Window.height, "game", NULL, NULL);
         if (windowId == NULL) {
             glfwTerminate();
             throw new RuntimeException("Failed to create the GLFW window");
