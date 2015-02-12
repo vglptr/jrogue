@@ -1,10 +1,8 @@
 package tile;
 
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
-import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
@@ -41,30 +39,55 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 import java.nio.FloatBuffer;
 
-import math.Matrix4f;
-import util.ShaderLoader;
-import util.VertexGenerator;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
+
+import core.Level;
 import core.Window;
 
-public class Tile {
-	private int uniModel;
-	private int uniProjection;
-	//private float previousAngle = 0f;
-//	private float angle = 0f;
-//	private float anglePerSecond = 50f;
+import math.Matrix4f;
+import util.Position;
+import util.ShaderLoader;
+import util.Textures;
+import util.VertexGenerator;
+
+public abstract class Tile {
+	
+	protected int uniProjection;
+	protected Position pos;
+	protected TileType type;
+	protected int shaderProgram;
+	private int tex;
+	
+	public Position getPosition() {
+		return pos;
+	}
+	
+	public void setPosition(Position pos) {
+		this.pos=pos;
+	}
+	
+	public abstract TileType getType();	
 	
 	int vao;
 	int vbo;
 	int vertexShader;
 	int fragmentShader;
-	int shaderProgram;
 	
+	private static final int tilesPerScreen = 5;
 	int resolutionx = 10;
 	int resolutiony = 10;
-	float squareSize = 0.1f;
+	float squareSize = 2/(float)resolutionx/(float)tilesPerScreen;
 	float ratio = 640f / 480f;
 	
 	public Tile() {
+		
+	}
+	
+	public void init(int x, int y) {
+		pos=new Position(x, y);
+		type=getType();
+		tex=Textures.getTexture(type);
 		vao = glGenVertexArrays();
 		glBindVertexArray(vao);
 		
@@ -107,41 +130,34 @@ public class Tile {
 		
 		glUseProgram(shaderProgram);
 		
+		int uniModel = glGetUniformLocation(shaderProgram, "model");
+		Matrix4f model = Matrix4f.translate(pos.x*squareSize*resolutionx, pos.y*squareSize*resolutionx, 0);
+		glUniformMatrix4(uniModel, false, model.getBuffer());
+		
 		int posAttrib = glGetAttribLocation(shaderProgram, "position");
 		glEnableVertexAttribArray(posAttrib);
-		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 24, 0);
+		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 20, 0);
 
-		int colAttrib = glGetAttribLocation(shaderProgram, "color");
-		glEnableVertexAttribArray(colAttrib);
-		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, false, 24, 12);
+		int texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
+		glEnableVertexAttribArray(texAttrib);
+		glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 20, 12);
 		
-		int uniModel = glGetUniformLocation(shaderProgram, "model");
-		Matrix4f model = new Matrix4f();
-		glUniformMatrix4(uniModel, false, model.getBuffer());
-
-		int uniView = glGetUniformLocation(shaderProgram, "view");
-		Matrix4f view = new Matrix4f();
-		glUniformMatrix4(uniView, false, view.getBuffer());
-
 		uniProjection = glGetUniformLocation(shaderProgram, "projection");
 		Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
 		glUniformMatrix4(uniProjection, false, projection.getBuffer());
 		
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, resolutionx * resolutiony * 3);
+		GL30.glUniform1ui(glGetUniformLocation(shaderProgram, "tex"), 0);
 	}
 	
-	public void update(float delta) {
-//	    previousAngle = angle;
-//	    angle += delta * anglePerSecond;
-
-	    int uniView = glGetUniformLocation(shaderProgram, "view");
-	    Matrix4f view = Matrix4f.translate(Window.x * 0.1f, Window.y * 0.1f, 0);
+	public abstract void update(float delta, Level level);
+	
+	public void render(float delta, Level level) {
+	
+		glUseProgram(shaderProgram);
+		
+		int uniView = glGetUniformLocation(shaderProgram, "view");
+	    Matrix4f view = Matrix4f.translate(level.cameraX, level.cameraY, 0);
 	    glUniformMatrix4(uniView, false, view.getBuffer());
-	}
-	
-	public void render(float alpha) {
-	    glClear(GL_COLOR_BUFFER_BIT);
 	    
 	    float newRatio = Window.getWidth() / (float)Window.getHeight();
 	    if(ratio != newRatio) {
@@ -150,10 +166,8 @@ public class Tile {
 	    	glUniformMatrix4(uniProjection, false, projection.getBuffer());
 	    }
 	    
-//	    float lerpAngle = (1f - alpha) * previousAngle + alpha * angle;
-//	    Matrix4f model = Matrix4f.rotate(lerpAngle, 0f, 0f, 1f);
-//	    glUniformMatrix4(uniModel, false, model.getBuffer());
-	    
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex);
+		
 	    glDrawArrays(GL_TRIANGLES, 0, resolutionx * resolutiony * 6);
 	}
 	

@@ -6,31 +6,26 @@ import static org.lwjgl.glfw.GLFW.glfwSetWindowTitle;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL11.glClear;
 
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 
-import tile.Tile;
+import util.Textures;
 
 
 public class MainComponent {
 	GLFWFramebufferSizeCallback fbCallback;
 	Window window = new Window();
-	Tile t;
     Timer timer = new Timer();
+    Level level = new Level();
     
     public MainComponent() {
-		t = new Tile();
+    	Textures.LoadTextures();
+    	level.init();
 		mainLoop();
 	}
-    
-    private void update(float delta) {
-    	t.update(delta);
-    }
-    
-    private void render() {
-    	t.render(timer.getDelta());
-    }
     
     
     private void mainLoop() {
@@ -38,8 +33,10 @@ public class MainComponent {
         	timer.updateFPS();
         	timer.update();
         	glfwSetWindowTitle(window.getId(), String.valueOf(timer.getFPS()));
-            update(timer.getDelta());
-            render();
+        	glClear(GL_COLOR_BUFFER_BIT);
+        	float delta=timer.getDelta();
+            level.update(delta);
+            level.render(delta);
             glfwSwapBuffers(window.getId());
             glfwPollEvents();
         }
