@@ -8,7 +8,6 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
@@ -18,8 +17,6 @@ import static org.lwjgl.opengl.GL20.glAttachShader;
 import static org.lwjgl.opengl.GL20.glCompileShader;
 import static org.lwjgl.opengl.GL20.glCreateProgram;
 import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL20.glDeleteProgram;
-import static org.lwjgl.opengl.GL20.glDeleteShader;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
@@ -34,65 +31,69 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 import java.nio.FloatBuffer;
 
+import math.Matrix4f;
+
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
-import core.Level;
-import core.Window;
-
-import math.Matrix4f;
 import util.Position;
 import util.ShaderLoader;
 import util.Textures;
 import util.VertexGenerator;
+import core.Level;
+import core.Window;
 
-public abstract class Tile {
-	
-	protected int uniProjection;
-	protected Position pos;
-	protected TileType type;
-	protected int shaderProgram;
-	private int tex;
-	
+public abstract class Tile {			
+	protected Position pos = new Position(0,0);
+
 	public Position getPosition() {
 		return pos;
 	}
 	
 	public void setPosition(Position pos) {
 		this.pos=pos;
+		model=Matrix4f.translate(pos.x, pos.y, 0);
 	}
 	
-	public abstract TileType getType();	
+	protected abstract TileType getType();
+	protected abstract int getMeshResolution();
+	protected abstract String getTextureName();
+	protected abstract int getTexture();
+	protected abstract void setTexture(int _tex);
+	protected abstract int getUniModel();
+	protected abstract void setUniModel(int _uniModel);
+	protected abstract int getShaderProgram();
+	protected abstract void setShaderProgram(int _shaderProgram);
+	protected abstract int getUniView();
+	protected abstract void setUniView(int _uniView);
+	protected abstract int getUniProjection();
+	protected abstract void setUniProjection(int _uniProjection);
 	
-	int vao;
-	int vbo;
-	int vertexShader;
-	int fragmentShader;
+	protected static float squareSize;
+	public Matrix4f model;
 	
-	private static final int tilesPerScreen = 5;
-	int resolutionx = 10;
-	int resolutiony = 10;
-	float squareSize = 2/(float)resolutionx/(float)tilesPerScreen;
-	float ratio = 640f / 480f;
 	
-	public Tile() {
+	public Tile() {	
+		squareSize = 1/getMeshResolution();
+	}
+	
+	public void initTileType() {
+		int vao;
+		int vbo;
+		int vertexShader;
+		int fragmentShader;
 		
-	}
-	
-	public void init(int x, int y) {
-		pos=new Position(x, y);
-		type=getType();
-		tex=Textures.getTexture(type);
+		setTexture(Textures.loadTexture(getTextureName()));
+		
 		vao = glGenVertexArrays();
 		glBindVertexArray(vao);
 		
-		FloatBuffer vertices = VertexGenerator.generateMesh(resolutionx, resolutiony, squareSize);
-		
+		FloatBuffer vertices = VertexGenerator.generateMesh(getMeshResolution(), getMeshResolution(), squareSize);
+	
 		vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
@@ -117,7 +118,9 @@ public abstract class Tile {
 			throw new RuntimeException(glGetShaderInfoLog(fragmentShader));
 		}
 		
-		shaderProgram = glCreateProgram();
+		int shaderProgram = glCreateProgram();
+		setShaderProgram(shaderProgram);
+		
 		glAttachShader(shaderProgram, vertexShader);
 		glAttachShader(shaderProgram, fragmentShader);
 		glBindFragDataLocation(shaderProgram, 0, "fragColor");
@@ -130,10 +133,6 @@ public abstract class Tile {
 		
 		glUseProgram(shaderProgram);
 		
-		int uniModel = glGetUniformLocation(shaderProgram, "model");
-		Matrix4f model = Matrix4f.translate(pos.x*squareSize*resolutionx, pos.y*squareSize*resolutionx, 0);
-		glUniformMatrix4(uniModel, false, model.getBuffer());
-		
 		int posAttrib = glGetAttribLocation(shaderProgram, "position");
 		glEnableVertexAttribArray(posAttrib);
 		glVertexAttribPointer(posAttrib, 3, GL_FLOAT, false, 20, 0);
@@ -142,40 +141,45 @@ public abstract class Tile {
 		glEnableVertexAttribArray(texAttrib);
 		glVertexAttribPointer(texAttrib, 2, GL_FLOAT, false, 20, 12);
 		
-		uniProjection = glGetUniformLocation(shaderProgram, "projection");
-		Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
-		glUniformMatrix4(uniProjection, false, projection.getBuffer());
-		
 		GL30.glUniform1ui(glGetUniformLocation(shaderProgram, "tex"), 0);
+		
+		setUniModel(glGetUniformLocation(shaderProgram, "model"));
+		setUniView(glGetUniformLocation(shaderProgram, "view"));
+		setUniProjection(glGetUniformLocation(shaderProgram, "projection"));
+	}
+
+	public void init(int x, int y) {
+		setPosition(new Position(x,y));
 	}
 	
 	public abstract void update(float delta, Level level);
 	
-	public void render(float delta, Level level) {
-	
-		glUseProgram(shaderProgram);
+	public void render(float delta, Level level) {	
+		glUseProgram(getShaderProgram());
 		
-		int uniView = glGetUniformLocation(shaderProgram, "view");
+		glUniformMatrix4(getUniModel(), false, model.getBuffer());
+		
 	    Matrix4f view = Matrix4f.translate(level.cameraX, level.cameraY, 0);
-	    glUniformMatrix4(uniView, false, view.getBuffer());
+	    glUniformMatrix4(getUniView(), false, view.getBuffer());
+	        
+    	float zoom=level.tilesPerScreen;
+    	Matrix4f projection = Matrix4f.orthographic(Window.getRatio()*-zoom/2.0f, Window.getRatio()*zoom/2.0f, -zoom/2.0f, zoom/2.0f, -1f, 1f);
+    	glUniformMatrix4(getUniProjection(), false, projection.getBuffer());
 	    
-	    float newRatio = Window.getWidth() / (float)Window.getHeight();
-	    if(ratio != newRatio) {
-	    	ratio = newRatio;
-	    	Matrix4f projection = Matrix4f.orthographic(-ratio, ratio, -1f, 1f, -1f, 1f);
-	    	glUniformMatrix4(uniProjection, false, projection.getBuffer());
-	    }
-	    
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, getTexture());
 		
-	    glDrawArrays(GL_TRIANGLES, 0, resolutionx * resolutiony * 6);
+	    glDrawArrays(GL_TRIANGLES, 0, getMeshResolution() * getMeshResolution() * 6);
 	}
 	
 	public void destroy() {
-		glDeleteVertexArrays(vao);
+		/*glDeleteVertexArrays(vao);
 		glDeleteBuffers(vbo);
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
-		glDeleteProgram(shaderProgram);
+		glDeleteProgram(shaderProgram);*/
+	}
+	
+	public boolean isWall() {
+		return getType()==TileType.B;
 	}
 }

@@ -30,11 +30,13 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWvidmode;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
 public class Window {
 	private static int width = 640;
 	private static int height = 480;
+	private static float ratio = width / (float)height;
 	private long windowId;
 	GLFWFramebufferSizeCallback fbCallback;
 	private static GLFWErrorCallback errorCallback = Callbacks.errorCallbackPrint(System.err);
@@ -59,6 +61,10 @@ public class Window {
     
     public static int getHeight() {
     	return height;
+    }
+    
+    public static float getRatio() {
+    	return ratio;
     }
     
     public long getId() {
@@ -92,6 +98,8 @@ public class Window {
         glfwMakeContextCurrent(windowId);
         GLContext.createFromCurrent();
         glfwSwapInterval(1);
+        GL11.glEnable(GL11.GL_BLEND); 
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA); 
         glfwSetKeyCallback(windowId, keyCallback);
         
         glfwSetFramebufferSizeCallback(windowId, fbCallback = new GLFWFramebufferSizeCallback() {
@@ -100,6 +108,7 @@ public class Window {
 				glViewport(0, 0, width, height);
 				Window.width = width;
 				Window.height = height;
+				Window.ratio = width / (float)height;
 			}
 		});
 	}

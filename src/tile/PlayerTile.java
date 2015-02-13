@@ -3,7 +3,7 @@ package tile;
 import core.Level;
 
 
-public class TestTile2 extends Tile {	
+public class PlayerTile extends Tile {	
 	private static int shaderProgram;
 	private static int tex;
 	private static int uniModel;
@@ -11,25 +11,26 @@ public class TestTile2 extends Tile {
 	private static int uniProjection;
 	
 	public String getTextureName() {
-		return "b";
+		return "p";
 	}
 	
 	public int getMeshResolution() {
-		return 5;
+		return 1;
 	}
 	
 	public TileType getType() {
-		return TileType.B;
+		return TileType.Player;
 	}
 	
 	public int getTexture() {
 		return tex;
 	}
 	
-	public TestTile2() {
+	public PlayerTile() {
 	}
 	
-	public void update(float delta, Level level) {		
+	public void update(float delta, Level level) {
+		
 	}
 
 	protected void setTexture(int _tex) {
@@ -67,5 +68,4 @@ public class TestTile2 extends Tile {
 	protected void setUniProjection(int _uniProjection) {
 		uniProjection=_uniProjection;
 	}
-	
 }

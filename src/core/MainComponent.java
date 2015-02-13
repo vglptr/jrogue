@@ -12,17 +12,24 @@ import static org.lwjgl.opengl.GL11.glClear;
 
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 
-import util.Textures;
+import tile.PlayerTile;
+import tile.TestTile1;
+import tile.TestTile2;
 
 
-public class MainComponent {
+
+public class MainComponent {	
 	GLFWFramebufferSizeCallback fbCallback;
 	Window window = new Window();
     Timer timer = new Timer();
     Level level = new Level();
     
     public MainComponent() {
-    	Textures.LoadTextures();
+    	//Bleh.
+    	(new TestTile1()).initTileType();
+    	(new TestTile2()).initTileType();
+    	(new PlayerTile()).initTileType();
+    	
     	level.init();
 		mainLoop();
 	}
