@@ -1,2 +1,2 @@
 # jrogue
-Roguelike in java / LWJGL
+Roguelike tile engine, written in java / LWJGL
